@@ -1,8 +1,10 @@
 from django.http import JsonResponse
 from students.models import Student
-from .serializers import StudentSerializer
+from .serializers import StudentSerializer, EmployeeSerializer
 from rest_framework import status
 from rest_framework.response import Response
+from rest_framework.views import APIView
+from employee.models import Employee
 
 # Create your views here.
 
@@ -58,3 +60,48 @@ def student_by_id(request, id):
             return Response(student_serializers.data)
 
         return Response(student_serializers.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class Employees(APIView):
+    def get(self, request):
+        emps = Employee.objects.all()
+        emp_serializer = EmployeeSerializer(emps, many=True)
+        return Response(emp_serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        emp_serializer = EmployeeSerializer(data=request.data)
+        if emp_serializer.is_valid():
+            emp_serializer.save()
+            return Response(emp_serializer.data, status=status.HTTP_201_CREATED)
+        return Response(emp_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class EmployeeDetails(APIView):
+    def get_object(self, id):
+        try:
+            return Employee.objects.get(pk=id)
+        except Employee.DoesNotExist:
+            return None
+
+    def get(self, request, id):
+        emp = self.get_object(id)
+        if emp is not None:
+            emp_serializer = EmployeeSerializer(emp)
+            return Response(emp_serializer.data, status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    def put(self, request, id):
+        emp = self.get_object(id)
+        if emp is not None:
+            emp_serializer = EmployeeSerializer(emp, data=request.data)
+            if emp_serializer.is_valid():
+                emp_serializer.save()
+                return Response(emp_serializer.data, status=status.HTTP_200_OK)
+            return Response(emp_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    def delete(self, request, id):
+        emp = self.get_object(id)
+        if emp is not None:
+            emp.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_404_NOT_FOUND)
