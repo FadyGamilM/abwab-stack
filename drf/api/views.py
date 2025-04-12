@@ -1,10 +1,11 @@
 from django.http import JsonResponse
 from students.models import Student
-from .serializers import StudentSerializer, EmployeeSerializer
+from .serializers import StudentSerializer, EmployeeSerializer, CompanySerializer
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from employee.models import Employee
+from employee.models import Employee, Company
+from rest_framework import mixins, generics
 
 # Create your views here.
 
@@ -75,6 +76,7 @@ class Employees(APIView):
             return Response(emp_serializer.data, status=status.HTTP_201_CREATED)
         return Response(emp_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 class EmployeeDetails(APIView):
     def get_object(self, id):
         try:
@@ -105,3 +107,32 @@ class EmployeeDetails(APIView):
             emp.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(status=status.HTTP_404_NOT_FOUND)
+
+
+class Companies(mixins.ListModelMixin, mixins.CreateModelMixin, generics.GenericAPIView):
+    # the last paramter which is the genericApiView will handle the request managment
+
+    # we first need to initialize 2 important fields
+    queryset = Company.objects.all()
+    serializer_class = CompanySerializer
+
+    # Then impl your crud methods
+    def get(self, request):
+        return self.list(request)
+
+    def post(self, request):
+        return self.create(request)
+
+
+class CompanyDetails(mixins.RetrieveModelMixin, mixins.UpdateModelMixin, mixins.DestroyModelMixin, generics.GenericAPIView):
+    queryset = Company.objects.all()
+    serializer_class = CompanySerializer
+
+    def get(self, request, pk):
+        return self.retrieve(request, pk)
+
+    def put(self, request, pk):
+        return self.put(request, pk)
+
+    def delete(self, request, pk):
+        return self.destroy(request, pk)

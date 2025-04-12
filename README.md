@@ -33,3 +33,8 @@
 ```
 
 4. add the drf to your installed_aps setting in the project
+
+5. extract the requierments installed 
+```shell
+pip freeze > requirements.txt
+```
