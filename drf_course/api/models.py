@@ -59,8 +59,10 @@ class Order(models.Model):
 
 class OrderItem(models.Model):
     # one-to-many as one order contains many orderItems so put the one at the many
-    order = models.ForeignKey(Order, on_delete=models.CASCADE)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    order = models.ForeignKey(
+        Order, on_delete=models.CASCADE, related_name='items')
+    product = models.ForeignKey(
+        Product, on_delete=models.CASCADE)
     # the reason i defined a through field in the relationship btn the Product <> Order is to include extra details in this relation for example the qty
     quantity = models.PositiveIntegerField()
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
