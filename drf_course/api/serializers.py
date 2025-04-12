@@ -44,3 +44,10 @@ class OrderSerializer(serializers.ModelSerializer):
         fields = ['order_id', 'status', 'user',
                   # we added the extra field of the serializer into the fields that will be exposed to the view handler.
                   'created_at', 'updated_at', 'items', 'total_price']
+
+
+class ProductInfoSerializer(serializers.Serializer):
+    '''This is an example of how to define a dto/serializer to hold data that doesn't need to be tied to a db model'''
+    products = ProductSerializer(many=True)
+    num_of_products = serializers.IntegerField()
+    max_price_product = serializers.FloatField()

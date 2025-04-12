@@ -5,4 +5,6 @@ urlpatterns = [
     path('products/', views.ProductList, name='product-list'),
     path('products/<int:pk>', views.ProductDetails, name='product-details'),
     path('orders/', views.OrderList, name='order-list'),
+    path('products/product-info',
+         views.ProductInfo, name='product-info')
 ]

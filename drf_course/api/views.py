@@ -1,7 +1,8 @@
 from django.shortcuts import render
+from django.db.models import Max
 from .models import Product, Order, OrderItem
 from rest_framework.decorators import api_view
-from .serializers import ProductSerializer, OrderItemSerializer, OrderSerializer
+from .serializers import ProductSerializer, OrderItemSerializer, OrderSerializer, ProductInfoSerializer
 from rest_framework.response import Response
 from rest_framework import status
 # Create your views here.
@@ -56,3 +57,16 @@ def OrderList(request):
             orderSerializer.save()
             return Response(orderSerializer.data, status=status.HTTP_201_CREATED)
         return Response(orderSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+def ProductInfo(request):
+    products = Product.objects.all()
+    productInfoSerializer = ProductInfoSerializer({
+        'products': products,
+        'num_of_products': products.count(),
+        'max_price_product': products.aggregate(max_price_product=Max('price'))['max_price_product']
+        # max_price_product = products.order_by('-price').first()
+        # the returned data from the Aggregate() is {"max_price_product": 1000}. so we access this property by saying ["max_price_product"]
+    })
+    return Response(productInfoSerializer.data, status=status.HTTP_200_OK)
