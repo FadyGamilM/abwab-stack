@@ -38,3 +38,16 @@
 ```shell
 pip freeze > requirements.txt
 ```
+
+## Management Commands ? 
+- In django apps you can define managmenet commands inside each installed_app
+- The scripts should be defined inside this folder structure `management/commands`
+- To run these commands 
+```shell
+└─▪ python3 ./manage.py name_of_script_with_.py_at_the_end
+```
+
+## Generate a relational-diagram to your data models using python extension:
+```shell
+└─▪ python3 ./manage.py graph_models name_of_app > `app_models.dot`
+```

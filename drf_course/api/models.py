@@ -1,12 +1,12 @@
 import uuid
 from django.db import models
-from django.contrib.auth import models
+from django.contrib.auth import models as auth_models
 # Create your models here.
 
 # lets customize our user
 
 
-class User(models.AbstractUser):
+class User(auth_models.AbstractUser):
     pass
 
 
@@ -44,9 +44,31 @@ class Order(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, blank=True)
 
-    updated_at = models.DateTimeField(auto_now=True)
+    updated_at = models.DateTimeField(auto_now=True, blank=True)
+
+    # the relationship btn order and product is many-to-many because order contains multiple products and same product-type can be ordered multiple times in different orders
+    products = models.ManyToManyField(
+        # related_name is the name to access the products from the order object by saying order.products directly
+        Product, through='OrderItem', related_name='orders')
 
     def __str__(self):
         return f"Order of {self.quantity} x {self.product.name} on {self.created_at} by {self.user.username}"
+
+
+class OrderItem(models.Model):
+    # one-to-many as one order contains many orderItems so put the one at the many
+    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    # the reason i defined a through field in the relationship btn the Product <> Order is to include extra details in this relation for example the qty
+    quantity = models.PositiveIntegerField()
+    created_at = models.DateTimeField(auto_now_add=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, blank=True)
+
+    def __str__(self):
+        return f"{self.quantity} x {self.product.name} in {self.order.order_id}"
+
+    @property
+    def order_item_subtotal(self):
+        return self.product.price * self.quantity
