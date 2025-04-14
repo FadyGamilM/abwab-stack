@@ -54,12 +54,12 @@ class Order(models.Model):
         Product, through='OrderItem', related_name='orders')
 
     def __str__(self):
-        return f"Order of {self.quantity} x {self.product.name} on {self.created_at} by {self.user.username}"
+        return f"Order {self.order_id} by {self.user.username} ({self.status})"
 
 
 class OrderItem(models.Model):
     # one-to-many as one order contains many orderItems so put the one at the many
-    order = models.ForeignKey(
+    order = models.ForeignKey( 
         Order, on_delete=models.CASCADE, related_name='items')
     product = models.ForeignKey(
         Product, on_delete=models.CASCADE)

@@ -51,3 +51,13 @@ pip freeze > requirements.txt
 ```shell
 └─▪ python3 ./manage.py graph_models name_of_app > `app_models.dot`
 ```
+
+## Fixing N+1 problem when you query the db
+- for 3 orders, and 2 orderItems per order and 1 product per orderItem we used to query the db 19 times
+- using `prefetch_related()` instead of `all()` we reduced it to 8 queries.
+- using the nested level `prefetch_related()` we optiomized it to 3 queries.
+
+## Creating superuser 
+```shell
+└─▪ python3 ./manage.py createsuperuser
+```
