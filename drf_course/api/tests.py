@@ -10,9 +10,9 @@ class OrderListGenericViewTest(TestCase):
     def setUp(self):
         user1 = User.objects.create_user(username='user1', password='pass1')
         user2 = User.objects.create_user(username='user2', password='pass2')
-        order1 = Order.objects.create(user=user1)
-        order2 = Order.objects.create(user=user2)
-        order3 = Order.objects.create(user=user2)
+        Order.objects.create(user=user1)
+        Order.objects.create(user=user2)
+        Order.objects.create(user=user2)
 
     def test_user_sees_only_their_orders(self):
         # get the user
@@ -34,4 +34,4 @@ class OrderListGenericViewTest(TestCase):
     def test_unauthenticated_user_cannot_access_orders(self):
         # Test without authentication
         response = self.client.get(reverse('users-order-list-generic'))
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)

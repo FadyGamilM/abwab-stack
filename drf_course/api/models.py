@@ -21,7 +21,7 @@ class Product(models.Model):
         return self.name
 
     @property
-    def in_stock(self):
+    def in_stock(self) -> bool:
         return self.stock > 0
 
 
@@ -44,7 +44,7 @@ class Order(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE)
 
-    created_at = models.DateTimeField(auto_now_add=True, blank=True)
+    created_at = models.DateTimeField(auto_now=True, blank=True)
 
     updated_at = models.DateTimeField(auto_now=True, blank=True)
 
@@ -59,7 +59,7 @@ class Order(models.Model):
 
 class OrderItem(models.Model):
     # one-to-many as one order contains many orderItems so put the one at the many
-    order = models.ForeignKey( 
+    order = models.ForeignKey(
         Order, on_delete=models.CASCADE, related_name='items')
     product = models.ForeignKey(
         Product, on_delete=models.CASCADE)

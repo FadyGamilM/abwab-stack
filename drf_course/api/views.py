@@ -29,27 +29,15 @@ class ProductListGenericView(generics.ListAPIView):
     serializer_class = ProductSerializer
 
 
-class ProductCreateGenericView(generics.CreateAPIView):
-    """Generic view for creating products"""
-    queryset = Product.objects.all()
-    serializer_class = ProductSerializer
-
-    def perform_create(self, serializer):
-        # We can add any additional logic here before saving
-        serializer.save()
-
-
 class ProductListCreateGenericView(generics.ListCreateAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
 
-    # now we need to allow any for the GET but allow only admin for POST
+    # now we need to allow any user for the GET but allow only admin for POST
     def get_permissions(self):
-        self.permission_classes = [AllowAny]
         if self.request.method == 'POST':
-            self.permission_classes = [IsAdminUser]
-        # at the end we call the method of the parent class .. but we need to modify it a little bit
-        return super().get_permissions()
+            return [IsAdminUser()]
+        return [AllowAny()]
 
 
 @api_view(['GET', 'PUT', 'DELETE'])
@@ -75,6 +63,29 @@ def ProductDetails(request, pk):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+@api_view(['GET'])
+def ProductInfo(request):
+    products = Product.objects.all()
+    productInfoSerializer = ProductInfoSerializer({
+        'products': products,
+        'num_of_products': products.count(),
+        'max_price_product': products.aggregate(max_price_product=Max('price'))['max_price_product']
+        # max_price_product = products.order_by('-price').first()
+        # the returned data from the Aggregate() is {"max_price_product": 1000}. so we access this property by saying ["max_price_product"]
+    })
+    return Response(productInfoSerializer.data, status=status.HTTP_200_OK)
+
+
+class ProductCreateGenericView(generics.CreateAPIView):
+    """Generic view for creating products"""
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+
+    def perform_create(self, serializer):
+        # We can add any additional logic here before saving
+        serializer.save()
+
+
 @api_view(['GET', 'POST'])
 def OrderList(request):
     # fetch the items and the related products to those items in only one query to avoid the N+1 query problem .. items_product means the product of this item
@@ -90,6 +101,16 @@ def OrderList(request):
         return Response(orderSerializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+class OrderDetailsGenericView(generics.RetrieveAPIView):
+    serializer_class = OrderSerializer
+    lookup_field = 'order_id'  # what field to filter based on
+    lookup_url_kwarg = 'id'  # the field query param, so these two and ingoring defining the queryset field will query only this order for this auth user so we fetch only one record from db
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Order.objects.filter(user=self.request.user).prefetch_related('items__product')
+
+
 class OrderListGenericView(generics.ListCreateAPIView):
     '''Return the orders of the authenticated user only'''
     queryset = Order.objects.all()
@@ -101,26 +122,3 @@ class OrderListGenericView(generics.ListCreateAPIView):
     # filter the orders based on the user
     def get_queryset(self):
         return self.queryset.filter(user=self.request.user)
-
-
-class OrderDetailsGenericView(generics.RetrieveAPIView):
-    serializer_class = OrderSerializer
-    lookup_field = 'order_id'  # what field to filter based on
-    lookup_url_kwarg = 'id'  # the field query param, so these two and ingoring defining the queryset field will query only this order for this auth user so we fetch only one record from db
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        return Order.objects.filter(user=self.request.user).prefetch_related('items__product')
-
-
-@api_view(['GET'])
-def ProductInfo(request):
-    products = Product.objects.all()
-    productInfoSerializer = ProductInfoSerializer({
-        'products': products,
-        'num_of_products': products.count(),
-        'max_price_product': products.aggregate(max_price_product=Max('price'))['max_price_product']
-        # max_price_product = products.order_by('-price').first()
-        # the returned data from the Aggregate() is {"max_price_product": 1000}. so we access this property by saying ["max_price_product"]
-    })
-    return Response(productInfoSerializer.data, status=status.HTTP_200_OK)
